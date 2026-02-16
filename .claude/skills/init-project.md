@@ -35,10 +35,11 @@ Use `AskUserQuestion` to collect:
 
 **Technical Requirements:**
 - Which LLM provider(s)? (OpenAI, Anthropic, local models, etc.)
+- Which agent framework? (Google ADK, Langgraph, Bedrock Agentcore, custom, none)
+- Cloud or local deployment? (AWS, GCP, Azure, local, hybrid)
+- Deployment target? (Docker, K8s, serverless, local)
 - Need for vector database? (Pinecone, Weaviate, Chroma, etc.)
 - Need for traditional database? (PostgreSQL, MongoDB, etc.)
-- Authentication required?
-- Deployment target? (Docker, K8s, serverless, local)
 
 **Agent Capabilities:**
 - What tools/capabilities does the agent need?
@@ -50,6 +51,17 @@ Use `AskUserQuestion` to collect:
 - Does it need memory/conversation history?
 - RAG (Retrieval-Augmented Generation) required?
 - Multi-step reasoning or simple Q&A?
+
+**API and Authentication:**
+- What external APIs will the agent integrate with? (List specific APIs)
+- Authentication methods needed:
+  - API keys
+  - OAuth 2.0
+  - JWT tokens
+  - Basic auth
+  - Custom authentication
+- Rate limiting requirements?
+- API security considerations? (encryption, secrets management)
 
 **Special Requirements:**
 - Real-time requirements?
@@ -85,12 +97,32 @@ dependencies = [
     "pydantic-settings",
     "ipykernel",
     
-    # Add based on requirements:
+    # Add based on LLM provider:
     # "openai",  # for OpenAI
     # "anthropic",  # for Claude
-    # "pinecone-client",  # for vector store
+    
+    # Add based on agent framework:
+    # "langgraph",  # for Langgraph
+    # "langchain",  # if using Langgraph
+    # "google-cloud-aiplatform",  # for Google ADK
+    # "boto3",  # for Bedrock Agentcore
+    
+    # Add based on data storage:
+    # "pinecone-client",  # for Pinecone vector store
+    # "chromadb",  # for Chroma
+    # "weaviate-client",  # for Weaviate
     # "psycopg2-binary",  # for PostgreSQL
-    # etc.
+    # "pymongo",  # for MongoDB
+    
+    # Add based on API integrations:
+    # "httpx",  # for async HTTP requests
+    # "requests",  # for sync HTTP requests
+    # "authlib",  # for OAuth 2.0
+    
+    # Add based on cloud deployment:
+    # "boto3",  # for AWS services
+    # "google-cloud-storage",  # for GCP
+    # "azure-identity",  # for Azure
 ]
 ```
 
@@ -101,6 +133,11 @@ Create `.env.example` content:
 OPENAI_API_KEY=your_key_here
 MODEL_NAME=gpt-4-turbo-preview
 
+# Agent Framework (if applicable)
+# LANGCHAIN_API_KEY=your_key_here  # for Langsmith
+# GOOGLE_CLOUD_PROJECT=your-project-id  # for Google ADK
+# AWS_REGION=us-east-1  # for Bedrock
+
 # Database (if needed)
 DATABASE_URL=postgresql://user:pass@localhost/dbname
 
@@ -108,9 +145,28 @@ DATABASE_URL=postgresql://user:pass@localhost/dbname
 PINECONE_API_KEY=your_key_here
 PINECONE_ENVIRONMENT=us-west1-gcp
 
+# External API Integrations
+# ZENDESK_CLIENT_ID=your_client_id
+# ZENDESK_CLIENT_SECRET=your_client_secret
+# ZENDESK_SUBDOMAIN=your_subdomain
+# SENDGRID_API_KEY=your_sendgrid_key
+# Add other API keys as needed
+
+# Authentication & Security
+# JWT_SECRET_KEY=your_secret_key
+# API_KEY=your_api_key
+# OAUTH_REDIRECT_URI=http://localhost:8000/callback
+
+# Cloud Deployment (if applicable)
+# AWS_ACCESS_KEY_ID=your_key  # if using AWS
+# AWS_SECRET_ACCESS_KEY=your_secret
+# GCP_SERVICE_ACCOUNT_KEY=/path/to/key.json  # if using GCP
+# AZURE_SUBSCRIPTION_ID=your_sub_id  # if using Azure
+
 # Application Settings
 LOG_LEVEL=INFO
 MAX_CONVERSATION_HISTORY=10
+RATE_LIMIT_PER_MINUTE=60
 ```
 
 4. **Initial Architecture Decisions:**
@@ -275,7 +331,33 @@ Which LLM provider do you want to use?
 
 > [User responds: "1"]
 
-**Question 3: Data Storage**
+**Question 3: Agent Framework**
+Which agent framework will you use?
+1. Google ADK (Agentic Development Kit)
+2. Langgraph
+3. Bedrock Agentcore
+4. Custom implementation
+5. None (direct LLM integration)
+
+> [User responds: "2 - Langgraph"]
+
+**Question 4: Deployment**
+Where will you deploy this agent?
+1. Cloud (AWS, GCP, Azure) - specify which
+2. Local development/on-premise
+3. Hybrid (local dev + cloud production)
+
+> [User responds: "1 - AWS"]
+
+How will you deploy this?
+1. Docker containers
+2. Kubernetes
+3. Serverless (Lambda, Cloud Functions)
+4. Direct deployment
+
+> [User responds: "1 - Docker"]
+
+**Question 5: Data Storage**
 Does your agent need to:
 - Store customer conversation history? (yes/no)
 - Access a knowledge base? (yes/no)
@@ -283,7 +365,7 @@ Does your agent need to:
 
 > [User responds: "yes, yes, yes"]
 
-**Question 4: Required Capabilities**
+**Question 6: Required Capabilities**
 What tools does your agent need? (select all that apply)
 - [ ] Search knowledge base
 - [ ] Create support tickets
@@ -294,14 +376,23 @@ What tools does your agent need? (select all that apply)
 
 > [User responds: checks first 4 options]
 
-**Question 5: Deployment**
-How will you deploy this?
-1. Docker (local or cloud)
-2. Kubernetes
-3. Serverless
-4. Direct deployment
+**Question 7: API Integrations and Authentication**
+What external APIs will your agent integrate with?
 
-> [User responds: "1"]
+> [User responds: "Zendesk API for tickets, SendGrid for emails, internal knowledge base API"]
+
+What authentication methods do you need?
+- [ ] API keys
+- [ ] OAuth 2.0
+- [ ] JWT tokens
+- [ ] Basic auth
+- [ ] Custom authentication
+
+> [User responds: "API keys for SendGrid, OAuth 2.0 for Zendesk"]
+
+Do you need rate limiting or special security considerations?
+
+> [User responds: "Yes, rate limiting for API calls, secrets in AWS Secrets Manager"]
 
 ---
 
@@ -367,6 +458,52 @@ Focus on:
 - Security considerations
 - Rate limiting
 - Scaling strategy
+
+### Scenario 5: Framework-Specific Agents
+
+#### Using Langgraph
+Focus on:
+- Graph state design
+- Node and edge configuration
+- Conditional routing
+- Checkpointing and persistence
+- Integration with LangChain tools
+
+#### Using Google ADK
+Focus on:
+- Agent definition and configuration
+- Tool registration with ADK
+- Cloud Run deployment
+- GCP service integration
+- Vertex AI integration
+
+#### Using Bedrock Agentcore
+Focus on:
+- Agent architecture on AWS
+- Knowledge base integration with Bedrock
+- Action groups and Lambda functions
+- IAM roles and permissions
+- CloudWatch integration
+
+### Scenario 6: Cloud vs Local Deployment
+
+#### Cloud Deployment (AWS/GCP/Azure)
+Focus on:
+- Containerization strategy
+- Secrets management (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault)
+- Managed database services
+- Auto-scaling configuration
+- CDN and edge deployment
+- Cost optimization
+
+#### Local/On-Premise Deployment
+Focus on:
+- Self-hosted LLM options
+- Local vector database setup
+- Network security
+- Backup and recovery
+- Hardware requirements
+- Offline capabilities
 
 ## Notes
 
