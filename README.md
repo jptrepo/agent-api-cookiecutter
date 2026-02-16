@@ -112,9 +112,15 @@ cookiecutter https://github.com/neural-maze/agent-api-cookiecutter.git
 
 After this, you'll be asked to fill in a few details about your project ... and that's it!
 
-### Folder Structure
+### Folder Structure & Documentation
 
-If you're curious about the folder structure, and what each file and folder is for, you can check my video post on Substack.
+If you're curious about the folder structure, and what each file and folder is for, check out these comprehensive guides:
+
+- **[agents.md](agents.md)** - Complete guide to building agents with this cookiecutter, including architecture patterns, best practices, and examples
+- **[CLAUDE.md](CLAUDE.md)** - Guide for using Claude and AI assistants to develop with this template
+- **[.claude/skills/](.claude/)** - Ready-to-use Claude skills for project initialization, PRD generation, and development planning
+
+For a video walkthrough, check the Neural Maze Substack.
 
 [TODO: Add link to the video post]
 
